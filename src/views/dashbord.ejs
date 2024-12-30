@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScript To-Do App</title>
+  <style>
+    body {
+    margin: 0;
+    padding: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url('/pexels-beyza-nur-yurtcu-1013673166-27084647.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  #app {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 25px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  h1 {
+    margin: 0 0 20px;
+    font-size: 28px;
+    color: #06010d;
+    display: flex;
+    align-items: center;
+  }
+  
+  #app h1 img {
+    width: 35px;
+    margin-left: 10px;
+  }
+  
+  #todo-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  #input {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  button {
+    background-color: #e7820e;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .list-container {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  .list-container li {
+    padding: 12px 15px 12px 40px; 
+    margin-bottom: 10px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    color: #080808;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  
+  .list-container li::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 10px; /* Position icon on the left */
+    transform: translateY(-50%);
+    height: 15px;
+    width: 15px;
+    background-color: #08030f;
+    background-image: url('/unchecked.jpeg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+  }
+  
+  ul li.checked {
+    color: #e46408;
+    text-decoration: line-through;
+  }
+  
+  ul li.checked::before {
+    background-image: url('/checked.png'); 
+  }
+  
+  #todo-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  #todo-list li button {
+    background-color: #ff5252;
+    padding: 5px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+
+  .delete-btn {
+    background-color: #ff5252;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+  
+  .delete-btn:hover {
+    background-color: #e46408;
+  }
+  ul li.checked {
+  color: #e46408;
+  text-decoration: line-through;
+}
+
+  
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>To-Do App <img src="/download (1).png" alt=""></h1>
+    <form id="todo-form">
+      <input type="text" id="input" placeholder="Add a new task" required />
+      <button type="submit">Add</button>
+    </form>
+    <ul class="list-container">
+      <% todos.forEach(todo => { %>
+        <li data-id="<%= todo._id %>" class="<%= todo.isCompleted ? 'checked' : '' %>">
+          <span><%= todo.title %> - <%= todo.isCompleted ? 'Completed' : 'Pending' %></span>
+          <button class="delete-btn" data-id="<%= todo._id %>">Delete</button>
+        </li>
+      <% }) %>
+    </ul>
+    
+    
+  </div>
+
+
+  <script>
+    
+   const todoForm = document.getElementById('todo-form');
+    const inputField = document.getElementById('input');
+
+    
+    todoForm.addEventListener('submit', async (event) => {
+      event.preventDefault(); 
+
+      const newTodo = inputField.value.trim(); 
+
+      if (newTodo) {
+        try {
+         
+          const response = await fetch('/addTodo', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title: newTodo }),
+          });
+
+          if (response.ok) {
+           
+            location.reload();
+          } else {
+            console.error('Failed to add todo:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+    });
+
+
+    const todoList = document.querySelector('.list-container');
+
+todoList.addEventListener('click', async (event) => {
+  if (event.target.classList.contains('delete-btn')) {
+    const todoId = event.target.dataset.id; // Get the ID of the todo to delete
+
+    try {
+      const response = await fetch(`/deleteTodo/${todoId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        location.reload(); // Reload the page after successful deletion
+      } else {
+        console.error('Failed to delete todo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+});
+
+
+todoList.addEventListener('click', async (event) => {
+  const li = event.target.closest('li'); // Ensure we're interacting with the <li> element
+
+  if (li && li.tagName === 'LI' && !event.target.classList.contains('delete-btn')) {
+    const todoId = li.dataset.id; // Get the ID of the clicked todo
+
+    try {
+      const response = await fetch(`/toggleTodo/${todoId}`, {
+        method: 'PATCH',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Update the UI
+        li.classList.toggle('checked', data.todo.isCompleted); // Toggle "checked" class
+        const span = li.querySelector('span'); // Find the <span> containing the text
+        span.textContent = `${data.todo.title} - ${data.todo.isCompleted ? 'Completed' : 'Pending'}`;
+      } else {
+        console.error('Failed to toggle todo status:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+});
+
+
+  </script>
+</body>
+</html>
